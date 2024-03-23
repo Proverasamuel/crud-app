@@ -1,0 +1,124 @@
+<!-- src/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD App</title>
+</head>
+<body>
+    <h1>CRUD App</h1>
+    <div id="items">
+        <h2>Itens</h2>
+        <div id="items-list"></div>
+        <h2>Adicionar Novo Item</h2>
+        <form id="addItemForm">
+            <label for="itemName">Nome:</label>
+            <input type="text" id="itemName" name="itemName"><br><br>
+            <label for="itemDescription">Descrição:</label><br>
+            <textarea id="itemDescription" name="itemDescription" rows="4" cols="50"></textarea><br><br>
+            <button type="submit">Adicionar Item</button>
+        </form>
+    </div>
+    <script>
+        function fetchItems() {
+            fetch('http://localhost:3000/api/items')
+                .then(response => response.json())
+                .then(data => {
+                    const itemsListElement = document.getElementById('items-list');
+                    itemsListElement.innerHTML = '';
+                    data.forEach(item => {
+                        const itemElement = document.createElement('div');
+                        itemElement.innerHTML = `
+                            <h3>${item.name}</h3>
+                            <p>${item.description}</p>
+                            <button onclick="editItem(${item.id}, '${item.name}', '${item.description}')">Editar</button>
+                            <button onclick="deleteItem(${item.id})">Excluir</button>
+                        `;
+                        itemsListElement.appendChild(itemElement);
+                    });
+                })
+                .catch(error => console.error('Erro:', error));
+        }
+
+        document.getElementById('addItemForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const itemName = document.getElementById('itemName').value;
+            const itemDescription = document.getElementById('itemDescription').value;
+            fetch('http://localhost:3000/api/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: itemName,
+                    description: itemDescription
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Item adicionado:', data);
+                fetchItems();
+                document.getElementById('addItemForm').reset();
+            })
+            .catch(error => console.error('Erro ao adicionar item:', error));
+        });
+
+        function editItem(itemId, itemName, itemDescription) {
+            const itemElement = document.createElement('div');
+            itemElement.innerHTML = `
+                <form id="editItemForm">
+                    <label for="newItemName">Novo Nome:</label>
+                    <input type="text" id="newItemName" name="newItemName" value="${itemName}"><br><br>
+                    <label for="newItemDescription">Nova Descrição:</label><br>
+                    <textarea id="newItemDescription" name="newItemDescription" rows="4" cols="50">${itemDescription}</textarea><br><br>
+                    <button type="submit">Salvar</button>
+                    <button type="button" onclick="cancelEdit()">Cancelar</button>
+                </form>
+            `;
+            itemElement.querySelector('#editItemForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const newName = document.getElementById('newItemName').value;
+                const newDescription = document.getElementById('newItemDescription').value;
+                fetch(`http://localhost:3000/api/items/${itemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: newName,
+                        description: newDescription
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Item atualizado:', data);
+                    fetchItems();
+                })
+                .catch(error => console.error('Erro ao atualizar item:', error));
+            });
+            document.getElementById('items-list').innerHTML = '';
+            document.getElementById('items-list').appendChild(itemElement);
+        }
+
+        function cancelEdit() {
+            fetchItems();
+        }
+
+        function deleteItem(itemId) {
+            if (confirm('Tem certeza que deseja excluir este item?')) {
+                fetch(`http://localhost:3000/api/items/${itemId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Item excluído:', data);
+                    fetchItems();
+                })
+                .catch(error => console.error('Erro ao excluir item:', error));
+            }
+        }
+
+        // Carregar itens ao carregar a página
+        fetchItems();
+    </script>
+</body>
+</html>
