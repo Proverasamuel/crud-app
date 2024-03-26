@@ -18,7 +18,101 @@
             <button type="submit">Adicionar Item</button>
         </form>
     </div>
+
+
+    <h2>Formulário para RECEITA</h2>
+    <form id="receitaForm">
+        <label for="nomeReceita">Nome da Receita:</label><br>
+        <input type="text" id="nomeReceita" name="nomeReceita"><br>
+        
+        <label for="modoPreparo">Modo de Preparo:</label><br>
+        <textarea id="modoPreparo" name="modoPreparo"></textarea><br>
+        
+        <input type="submit" value="Criar Receita">
+    </form>
+
+
+    <h2>Formulário para INGREDIENTE</h2>
+    <form id="ingredienteForm">
+        <label for="nomeIngrediente">Nome do Ingrediente:</label><br>
+        <input type="text" id="nomeIngrediente" name="nomeIngrediente"><br>
+        
+        <label for="dataValidade">Data de Validade:</label><br>
+        <input type="date" id="dataValidade" name="dataValidade"><br>
+        
+        <input type="submit" value="Adicionar Ingrediente">
+    </form>
     <script>
+         function criarReceita(nomeReceita, modoPreparo) {
+            fetch('http://localhost:3000/api/RECEITA', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome_receita: nomeReceita,
+                    modo_preparo: modoPreparo
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao criar a receita');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Receita criada:', data);
+                alert('Receita criada com sucesso!');
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao criar a receita');
+            });
+        }
+        function criarIngrediente(nomeIngrediente, dataValidade) {
+            fetch('http://localhost:3000/api/INGREDIENTE', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nomeIngrediente: nomeIngrediente,
+                    dataValidade: dataValidade
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao criar o ingrediente');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Ingrediente criado:', data);
+                alert('Ingrediente criado com sucesso!');
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao criar o ingrediente');
+            });
+        }
+        
+        document.getElementById('receitaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const nomeReceita = formData.get('nomeReceita');
+            const modoPreparo = formData.get('modoPreparo');
+            criarReceita(nomeReceita, modoPreparo);
+            this.reset();
+        });
+
+        document.getElementById('ingredienteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const nomeIngrediente = formData.get('nomeIngrediente');
+            const dataValidade = formData.get('dataValidade');
+            criarIngrediente(nomeIngrediente, dataValidade);
+            this.reset();
+        });
         function fetchItems() {
             fetch('http://localhost:3000/api/items')
                 .then(response => response.json())
@@ -122,3 +216,4 @@
     </script>
 </body>
 </html>
+
